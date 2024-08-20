@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "842720557413",
+    "project_id": "couture-3bec6",
+    "storage_bucket": "couture-3bec6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:842720557413:android:1d3074d684e95b54fb498c",
+        "android_client_info": {
+          "package_name": "com.example.coutureapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCCqVtVqrURbX91JQNF08Pyb3Z-84KcZNI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
