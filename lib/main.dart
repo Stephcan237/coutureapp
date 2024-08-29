@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:provider/provider.dart';
 import 'screens/measurement_screen.dart';
 import 'screens/order_management_screen.dart';
 import 'screens/client_management_screen.dart';
@@ -9,22 +11,55 @@ import 'screens/register.dart';
 import 'screens/screens/new_client_screen.dart';
 import 'screens/settings_screen.dart';
 import 'services/firebase_auth_service.dart';
-import 'package:provider/provider.dart';
-//import 'package:firebase_auth/firebase_auth.dart';
+import 'services/gest_commandes.dart'; // Assurez-vous que le chemin est correct
+import 'services/gest_clients.dart';
 import 'package:coutureapp/screens/models/app_user.dart';
 import 'package:coutureapp/screens/screens/client_dashboard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  NotificationSettings settings = await messaging.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
+  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+    print('User granted permission');
+  } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
+    print('User granted provisional permission');
+  } else {
+    print('User declined or has not accepted permission');
+  }
+
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    if (message.notification != null) {
+      print('Message also contained a notification: ${message.notification}');
+      // Handle the notification and show it in the app if needed
+    }
+  });
+
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => FirebaseAuthService(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => FirebaseAuthService(),
+        ),
+        Provider<CommandeService>(
+          create: (context) => CommandeService(),
+        ),
+        Provider<ClientService>(
+          create: (context) => ClientService(),
+        ),
+      ],
       child: MaterialApp(
         title: 'Gestion Atelier Couture',
         theme: ThemeData(
@@ -55,7 +90,17 @@ class AuthWrapper extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.active) {
           final user = snapshot.data;
-          return user == null ? LoginScreen() : DashboardScreen();
+          if (user == null) {
+            return LoginScreen();
+          } else if (user.role == 'Client') {
+            return ClientDashboard();
+          } else if (user.role == 'Couturier') {
+            return DashboardScreen();
+          } else {
+            return Scaffold(
+              body: Center(child: Text('Rôle non défini')),
+            );
+          }
         } else {
           return Scaffold(
             body: Center(child: CircularProgressIndicator()),

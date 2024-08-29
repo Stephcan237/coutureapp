@@ -26,7 +26,7 @@ class RegisterScreen extends StatelessWidget {
         } else {
           // Afficher une erreur utilisateur
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur lors de l\'inscription')),
+            SnackBar(content: Text('Erreur lors de l\'inscription. Veuillez vérifier vos informations.')),
           );
         }
       } else {
@@ -74,7 +74,7 @@ class RegisterScreen extends StatelessWidget {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter an email';
+                                return 'Veuillez saisir une adresse e-mail';
                               }
                               return null;
                             },
@@ -82,13 +82,13 @@ class RegisterScreen extends StatelessWidget {
                           TextFormField(
                             controller: passwordController,
                             decoration: InputDecoration(
-                              labelText: 'Password',
+                              labelText: 'Mot de passe',
                               border: InputBorder.none,
                             ),
                             obscureText: true,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter a password';
+                                return 'Veuillez saisir un mot de passe';
                               }
                               return null;
                             },
@@ -96,13 +96,13 @@ class RegisterScreen extends StatelessWidget {
                           TextFormField(
                             controller: confirmPasswordController,
                             decoration: InputDecoration(
-                              labelText: 'Confirm Password',
+                              labelText: 'Confirmer le mot de passe',
                               border: InputBorder.none,
                             ),
                             obscureText: true,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please confirm your password';
+                                return 'Veuillez confirmer votre mot de passe';
                               }
                               return null;
                             },
@@ -114,7 +114,7 @@ class RegisterScreen extends StatelessWidget {
                               return DropdownButtonFormField<String>(
                                 value: value,
                                 decoration: InputDecoration(
-                                  labelText: 'Role',
+                                  labelText: 'Rôle',
                                   border: InputBorder.none,
                                 ),
                                 items: <String>['Client', 'Couturier']
@@ -149,7 +149,7 @@ class RegisterScreen extends StatelessWidget {
                         ),
                         child: Center(
                           child: Text(
-                            "Register",
+                            "S'inscrire",
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -164,7 +164,7 @@ class RegisterScreen extends StatelessWidget {
                         Navigator.pop(context);
                       },
                       child: Text(
-                        "Already have an account? Login",
+                        "Vous avez déjà un compte ? Connexion",
                         style: TextStyle(
                           color: Color.fromRGBO(143, 148, 251, 1),
                           fontWeight: FontWeight.bold,

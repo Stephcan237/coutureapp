@@ -28,24 +28,46 @@ class FirebaseAuthService extends ChangeNotifier {
   }
 
   Future<AppUser?> signInWithEmailAndPassword(String email, String password) async {
-    UserCredential result = await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
-    User? user = result.user;
-    return _userFromFirebase(user);
+    try {
+      UserCredential result = await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
+      User? user = result.user;
+
+      if (user != null) {
+        final appUser = _userFromFirebase(user);
+        final userDoc = await _firestore.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          appUser!.role = userDoc.data()?['role'] ?? ''; // Assurer que le rôle est défini
+        }
+        return appUser;
+      }
+
+      return null;
+    } catch (e) {
+      print('Erreur lors de la connexion : $e');
+      return null;
+    }
   }
 
   Future<AppUser?> signUpWithEmailAndPassword(String email, String password, String role) async {
-    UserCredential result = await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
-    User? user = result.user;
+    try {
+      UserCredential result = await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
+      User? user = result.user;
 
-    if (user != null) {
-      // Stocker le rôle de l'utilisateur dans Firestore
-      await _firestore.collection('users').doc(user.uid).set({
-        'email': email,
-        'role': role,
-      });
+      if (user != null) {
+        // Stocker le rôle de l'utilisateur dans Firestore
+        await _firestore.collection('users').doc(user.uid).set({
+          'email': email,
+          'role': role,
+        });
+
+        return AppUser(uid: user.uid, email: email, role: role);
+      }
+
+      return null;
+    } catch (e) {
+      print('Erreur lors de l\'inscription : $e');
+      return null;
     }
-
-    return _userFromFirebase(user);
   }
 
   Future<void> signOut() async {

@@ -20,12 +20,13 @@ class LoginScreen extends StatelessWidget {
         if (utilisateur.role == 'Client') {
           Navigator.pushReplacementNamed(context, '/client_dashboard');
         } else if (utilisateur.role == 'Couturier') {
-          Navigator.pushReplacementNamed(context, '/dashboard');
-        } else {
-          print('Rôle non défini');
+          Navigator.pushReplacementNamed(context, '/couturier_dashboard');
         }
       } else {
-        print('Erreur lors de la connexion');
+        // Afficher une erreur utilisateur
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors de la connexion. Veuillez vérifier vos informations.')),
+        );
       }
     }
   }
@@ -62,7 +63,7 @@ class LoginScreen extends StatelessWidget {
                           TextFormField(
                             controller: emailController,
                             decoration: InputDecoration(
-                              labelText: 'E-mail',
+                              labelText: 'Email',
                               border: InputBorder.none,
                             ),
                             validator: (value) {
@@ -103,7 +104,7 @@ class LoginScreen extends StatelessWidget {
                         ),
                         child: Center(
                           child: Text(
-                            "Connexion",
+                            'Connexion',
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -112,26 +113,13 @@ class LoginScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    SizedBox(height: 20),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, '/forgot_password');
-                      },
-                      child: Text(
-                        "Mot de passe oublié ?",
-                        style: TextStyle(
-                          color: Color.fromRGBO(143, 148, 251, 1),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 30),
+                    SizedBox(height: 70),
                     GestureDetector(
                       onTap: () {
                         Navigator.pushNamed(context, '/register');
                       },
                       child: Text(
-                        "Vous n'avez pas de compte ? S'inscrire",
+                        "Vous n'avez pas de compte ? Inscription",
                         style: TextStyle(
                           color: Color.fromRGBO(143, 148, 251, 1),
                           fontWeight: FontWeight.bold,
