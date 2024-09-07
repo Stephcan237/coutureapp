@@ -11,10 +11,11 @@ import 'screens/register.dart';
 import 'screens/screens/new_client_screen.dart';
 import 'screens/settings_screen.dart';
 import 'services/firebase_auth_service.dart';
-import 'services/gest_commandes.dart'; // Assurez-vous que le chemin est correct
+import 'services/gest_commandes.dart';
 import 'services/gest_clients.dart';
 import 'package:coutureapp/screens/models/app_user.dart';
 import 'package:coutureapp/screens/screens/client_dashboard.dart';
+import 'package:coutureapp/services/vetement_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,6 +60,7 @@ class MyApp extends StatelessWidget {
         Provider<ClientService>(
           create: (context) => ClientService(),
         ),
+        Provider(create: (context) => VetementService())
       ],
       child: MaterialApp(
         title: 'Gestion Atelier Couture',
@@ -73,6 +75,7 @@ class MyApp extends StatelessWidget {
           '/client_management': (context) => ClientManagementScreen(),
           '/new_client': (context) => NewClientScreen(),
           '/client_dashboard': (context) => ClientDashboard(),
+          '/couturier_dashboard': (context) => DashboardScreen(),
         },
         home: AuthWrapper(),
       ),
@@ -171,14 +174,14 @@ class DashboardScreen extends StatelessWidget {
                     context,
                     'Gestion des Commandes',
                     Icons.assignment,
-                    OrderManagementScreen(),
+                    OrderManagementScreen(), // Utilisation de la gestion des commandes
                     Colors.transparent,
                   ),
                   _buildDashboardCard(
                     context,
                     'Gestion des Clients',
                     Icons.people,
-                    ClientManagementScreen(),
+                    ClientManagementScreen(), // Utilisation de la gestion des clients
                     Colors.transparent,
                   ),
                   _buildDashboardCard(
@@ -204,7 +207,8 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDashboardCard(BuildContext context, String title, IconData icon, Widget destination, Color color) {
+  Widget _buildDashboardCard(BuildContext context, String title, IconData icon,
+      Widget destination, Color color) {
     return Card(
       margin: EdgeInsets.all(10.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),

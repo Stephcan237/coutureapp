@@ -6,6 +6,7 @@ import 'package:coutureapp/screens/screens/notification_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:provider/provider.dart';
 import 'package:coutureapp/services/firebase_auth_service.dart';
+import 'package:coutureapp/services/vetement_service.dart'; // Importer le service de gestion des vêtements
 
 class ClientDashboard extends StatefulWidget {
   @override
@@ -13,22 +14,7 @@ class ClientDashboard extends StatefulWidget {
 }
 
 class _ClientDashboardState extends State<ClientDashboard> {
-  final List<ClothModel> clothModels = [
-    ClothModel(
-      id: '1',
-      name: 'Robe élégante',
-      imageUrl: 'https://example.com/robe1.jpg',
-      description: 'Une robe élégante pour les soirées.',
-    ),
-    ClothModel(
-      id: '2',
-      name: 'T-shirt décontracté',
-      imageUrl: 'https://example.com/tshirt1.jpg',
-      description: 'Un t-shirt parfait pour les sorties décontractées.',
-    ),
-    // Ajoutez plus de modèles de vêtements ici
-  ];
-
+  List<ClothModel> clothModels = [];
   List<notif_model.NotificationModel> notifications = [];
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
@@ -55,6 +41,14 @@ class _ClientDashboardState extends State<ClientDashboard> {
           );
         });
       }
+    });
+
+    // Charger les modèles de vêtements depuis le service
+    final vetementService = Provider.of<VetementService>(context, listen: false);
+    vetementService.getVetements().then((models) {
+      setState(() {
+        clothModels = models;
+      });
     });
 
     // Ajouter des notifications par défaut si nécessaire

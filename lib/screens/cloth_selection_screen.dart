@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:coutureapp/screens/models/cloth_model.dart';
+import 'package:coutureapp/screens/screens/new_order_screen.dart';
 
 class ClothSelectionScreen extends StatelessWidget {
   final List<ClothModel> clothModels;
@@ -13,12 +14,18 @@ class ClothSelectionScreen extends StatelessWidget {
       itemBuilder: (context, index) {
         final cloth = clothModels[index];
         return Card(
+          margin: EdgeInsets.all(8.0),
           child: ListTile(
-            leading: Image.network(cloth.imageUrl),
+            leading: Image.asset(cloth.imageUrl), // Utilisation de l'image à partir des assets
             title: Text(cloth.name),
             subtitle: Text(cloth.description),
             onTap: () {
-              // Action à effectuer lors de la sélection d'un modèle de vêtement
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NewOrderScreen(cloth: cloth, commande: null),
+                ),
+              );
             },
           ),
         );

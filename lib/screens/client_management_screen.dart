@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:coutureapp/services/gest_clients.dart';
 import 'package:coutureapp/screens/models/client_model.dart';
 import 'package:coutureapp/screens/models/commande_model.dart';
+import 'package:coutureapp/screens/screens/client_detail_screen.dart';
 
 class ClientManagementScreen extends StatelessWidget {
   @override
@@ -15,10 +16,16 @@ class ClientManagementScreen extends StatelessWidget {
         backgroundColor: Color(0xFF3E4A89),
       ),
       body: StreamBuilder<List<ClientModel>>(
-        stream: clientService.getClients(),
+        stream: clientService.getClients(), // Assurez-vous que cette méthode est définie dans ClientService
         builder: (context, snapshot) {
-          if (!snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Erreur: ${snapshot.error}'));
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('Aucun client trouvé.'));
           }
 
           final clients = snapshot.data!;
@@ -27,86 +34,41 @@ class ClientManagementScreen extends StatelessWidget {
             itemCount: clients.length,
             itemBuilder: (context, index) {
               final client = clients[index];
-              return ListTile(
-                title: Text(client.name),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Address: ${client.address}'),
-                    Text('phoneNumber: ${client.phoneNumber}'),
-                  ],
-                ),
-                trailing: IconButton(
-                  icon: Icon(Icons.delete, color: Colors.red),
-                  onPressed: () async {
-                    await clientService.supprimerClient(client.id);
+              return Card(
+                margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                elevation: 4,
+                child: ListTile(
+                  title: Text(client.nom, style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Adresse: ${client.adresse.isNotEmpty ? client.adresse : 'Non spécifiée'}'), // Vérifie si l'adresse est vide
+                      Text('Téléphone: ${client.numeroTelephone != 0 ? client.numeroTelephone.toString() : 'Non spécifié'}'), // Vérifie si le numéro de téléphone est 0
+                    ],
+                  ),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete, color: Colors.red),
+                    onPressed: () async {
+                      await clientService.supprimerClient(client.id);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Client supprimé avec succès')),
+                      );
+                    },
+                  ),
+                  onTap: () async {
+                    List<CommandeModel> commandes = await clientService.getClientCommandes(client.commandeIds);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ClientDetailScreen(client: client, commandes: commandes),
+                      ),
+                    );
                   },
                 ),
-                onTap: () async {
-                  List<CommandeModel> commandes =
-                      await clientService.getClientCommandes(client.commandesIds);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ClientDetailScreen(client: client, commandes: commandes),
-                    ),
-                  );
-                },
               );
             },
           );
         },
-      ),
-    );
-  }
-}
-
-class ClientDetailScreen extends StatelessWidget {
-  final ClientModel client;
-  final List<CommandeModel> commandes;
-
-  ClientDetailScreen({required this.client, required this.commandes});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Détails du Client'),
-        backgroundColor: Color(0xFF3E4A89),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Name: ${client.name}', style: TextStyle(fontSize: 20)),
-            Text('Address: ${client.address}'),
-            Text('phoneNumber: ${client.phoneNumber}'),
-            SizedBox(height: 20),
-            Text('Commandes:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            Expanded(
-              child: ListView.builder(
-                itemCount: commandes.length,
-                itemBuilder: (context, index) {
-                  final commande = commandes[index];
-                  return ListTile(
-                    title: Text(commande.description),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Statut: ${commande.status}'),
-                        if (commande.datePlanifiee != null)
-                          Text('Date Planifiée: ${commande.datePlanifiee}'),
-                        if (commande.dateLivraison != null)
-                          Text('Date de Livraison: ${commande.dateLivraison}'),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

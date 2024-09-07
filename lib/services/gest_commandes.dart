@@ -1,27 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coutureapp/screens/models/commande_model.dart';
+import 'package:coutureapp/screens/models/client_model.dart';
 
 class CommandeService {
   final CollectionReference commandesCollection =
       FirebaseFirestore.instance.collection('commandes');
+  final CollectionReference clientsCollection =
+      FirebaseFirestore.instance.collection('clients');
 
-  Future<void> ajouterCommande(CommandeModel commande) async {
+  Future<void> ajouterCommande(CommandeModel commande, ClientModel client) async {
     try {
-      String id = commande.id.isNotEmpty ? commande.id : commandesCollection.doc().id;
-      commande = CommandeModel(
-        id: id,
-        clientId: commande.clientId,
-        description: commande.description,
-        status: commande.status,
-        dateCreation: commande.dateCreation,
-        dateCompletion: commande.dateCompletion,
-        datePlanifiee: commande.datePlanifiee,
-        dateLivraison: commande.dateLivraison,
-      );
-      await commandesCollection.doc(id).set(commande.toMap());
+      await commandesCollection.doc(commande.id).set(commande.toMap());
+      await clientsCollection.doc(client.id).update({
+        'commandeIds': FieldValue.arrayUnion([commande.id]),
+      });
     } catch (e) {
       print('Erreur lors de l\'ajout de la commande : $e');
-      throw Exception('Impossible d\'ajouter la commande.');
+      rethrow;
     }
   }
 
@@ -30,16 +25,19 @@ class CommandeService {
       await commandesCollection.doc(commande.id).update(commande.toMap());
     } catch (e) {
       print('Erreur lors de la mise à jour de la commande : $e');
-      throw Exception('Impossible de mettre à jour la commande.');
+      rethrow;
     }
   }
 
-  Future<void> supprimerCommande(String id) async {
+  Future<void> supprimerCommande(String commandeId, String clientId) async {
     try {
-      await commandesCollection.doc(id).delete();
+      await commandesCollection.doc(commandeId).delete();
+      await clientsCollection.doc(clientId).update({
+        'commandeIds': FieldValue.arrayRemove([commandeId]),
+      });
     } catch (e) {
       print('Erreur lors de la suppression de la commande : $e');
-      throw Exception('Impossible de supprimer la commande.');
+      rethrow;
     }
   }
 
@@ -52,29 +50,57 @@ class CommandeService {
       return null;
     } catch (e) {
       print('Erreur lors de la récupération de la commande : $e');
-      throw Exception('Impossible de récupérer la commande.');
+      rethrow;
+    }
+  }
+
+  Future<ClientModel?> getClientById(String clientId) async {
+    try {
+      DocumentSnapshot doc = await clientsCollection.doc(clientId).get();
+      if (doc.exists) {
+        return ClientModel.fromMap(doc.data() as Map<String, dynamic>);
+      }
+      return null;
+    } catch (e) {
+      print('Erreur lors de la récupération du client : $e');
+      rethrow;
+    }
+  }
+
+  Future<List<CommandeModel>> getCommandesByClientId(String clientId) async {
+    try {
+      QuerySnapshot snapshot = await commandesCollection
+          .where('clientId', isEqualTo: clientId)
+          .orderBy('dateCreation', descending: true)
+          .get();
+      return snapshot.docs
+          .map((doc) => CommandeModel.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print('Erreur lors de la récupération des commandes du client : $e');
+      rethrow;
     }
   }
 
   Future<void> planifierCommande(String commandeId, DateTime datePlanifiee) async {
     try {
       await commandesCollection.doc(commandeId).update({
-        'datePlanifiee': datePlanifiee.toIso8601String(),
+        'datePlanifiee': Timestamp.fromDate(datePlanifiee),
       });
     } catch (e) {
       print('Erreur lors de la planification de la commande : $e');
-      throw Exception('Impossible de planifier la commande.');
+      rethrow;
     }
   }
 
   Future<void> planifierLivraison(String commandeId, DateTime dateLivraison) async {
     try {
       await commandesCollection.doc(commandeId).update({
-        'dateLivraison': dateLivraison.toIso8601String(),
+        'dateLivraison': Timestamp.fromDate(dateLivraison),
       });
     } catch (e) {
       print('Erreur lors de la planification de la livraison : $e');
-      throw Exception('Impossible de planifier la livraison.');
+      rethrow;
     }
   }
 
@@ -85,7 +111,7 @@ class CommandeService {
           .toList());
     } catch (e) {
       print('Erreur lors de la récupération des commandes : $e');
-      throw Exception('Impossible de récupérer les commandes.');
+      rethrow;
     }
   }
 }
